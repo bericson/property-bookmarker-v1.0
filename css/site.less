@@ -1,3 +1,4 @@
+@bp-blue: #4A90E2;
 
 body {
   padding-top: 20px;
@@ -5,47 +6,122 @@ body {
 	background-color: #f4f4f4;
 }
 
+.container {
+	min-width: 768px;
+}
+
 h1 {
-	margin: 0 auto 50px auto;
+	margin: 10px auto 50px auto;
 	text-align: center;
 }
 
 ul {
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 #AddNewItemContainer {
+	min-width: 768px;
 	margin: 0 auto;
 	input {
-	  //border-radius: 4px;
+		padding: 22px;
+		font-size: 18px;
+		&.item-title {
+			//width: 25%;
+			margin-right: -1px;
+	  	-webkit-border-radius: 4px 0px 0px 4px; /* top left, top right, bottom right, bottom left */
+	  	-moz-border-border-radius: 4px 0px 0px 4px;
+	  	border-radius: 4px 0px 0px 4px;
+	  }
+		&.item-url {
+			//width: 50%;
+	  	-webkit-border-radius: 0px 4px 4px 0px;
+	  	-moz-border-border-radius: 0px 4px 4px 0px;
+	  	border-radius: 0px 4px 4px 0px;
+	  }
 	}
  .btn {
 	  padding: 10px 30px;
 	  font-size: 18px;
 	  border-radius: 4px;
 	  border: none;
+	}	
+	.btn-primary {
+		margin-left: 15px;
+		text-transform: uppercase;		
+		background-color: @bp-blue;
+		&:hover {
+			background-color: darken(@bp-blue, 10) !important;
+		}
 	}
 }
 
-.btn-primary {
-	background-color: #4A90E2;
-	text-transform: uppercase;
+.form-control-inline {
+  min-width: 0;
+  width: auto;
+  display: inline;
 }
 
-/*#AddNewItemContainer, #MessageContainer {
-  margin-left: 40px;
-}*/
+#AddNewItemContainer, #MessageContainer {
+}
 
 #MessageContainer {
   margin-top: 15px;
   font-weight: bold;
   font-style: italic;
+  .alert {
+  	display: none;
+  }
+  .alert-success, .alert-danger {
+  	display: block;
+  	margin-bottom: -50px;
+  }
 }
 
-.success {
-  color: green;
+#ItemsList {
+	padding-top: 50px;
+	.list-item {
+  	.form-group {
+  		padding: 20px;  		
+			margin: 15px 0;
+			background-color: white;
+			border: 1px solid #ccc;	
+	  	-webkit-border-radius: 4px;
+	  	-moz-border-border-radius: 4px;	
+	  	border-radius: 4px;
+	  	&:hover {  	
+		  	/*box-shadow: [horizontal offset] [vertical offset] [blur radius] [optional spread radius] [color];*/
+				-webkit-box-shadow: 2px 2px 2px 1px #ccc;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+				-moz-box-shadow: 2px 2px 2px 1px #ccc;  /* Firefox 3.5 - 3.6 */
+				box-shadow: 2px 2px 2px 1px #ccc;  /* Opera 10.5, IE 9, Firefox 4+, Chrome 6+, iOS 5 */	
+	  	}
+  	}
+	}
 }
 
-.error {
-  color: red;
+.input-group, .button-group {
+	padding: 0;
+}
+
+.button-group {
+	position: absolute;
+	top: 27px;
+	right: 8px;
+}
+
+.btn-icon {
+	color: @bp-blue;
+	background-color: white !important;
+	border: none;
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 730px;
+  }
+}
+
+.container-narrow > hr {
+  margin: 30px 0;
 }

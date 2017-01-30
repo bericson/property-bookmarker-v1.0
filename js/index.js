@@ -13,15 +13,16 @@
     return '<input type="text" class="item-' + name + ' ' + addCssClasses + '" ' + valueOrPlaceholder + ' />';
   }
 
-  function createItemActionBtn(action, label, cssClasses) {
-    var addCssClasses = cssClasses ? cssClasses : "";
-    return '<button class="' + action + '-item ' + addCssClasses + '" type="button">' + label +'</button>';
+  function createItemActionBtn(action, label, cssClasses, icon) {
+    var addCssClasses = cssClasses ? cssClasses : "",
+        addIcon = icon ? '<span class="glyphicon ' + icon + '" aria-hidden="true"></span>' : "";
+    return '<button type="button" class="' + action + '-item ' + addCssClasses + '">' + label + addIcon + '</button>';
   }
 
   function renderAddNewItemInputs() {
     var itemElsGroup = $('<form id="AddNewItemForm" class="form-inline"><div class="form-group">' + 
-                          createItemInput("title", "Name", "form-control") + 
-                          createItemInput("url", "URL", "form-control") + 
+                          createItemInput("title", "Name", "form-control form-control-inline") + 
+                          createItemInput("url", "URL", "form-control form-control-inline") + 
                           createItemActionBtn("add", "Enter", "btn btn-primary btn-lg") + 
                         '</div></form>');
     itemElsGroup.appendTo("#AddNewItemContainer");
@@ -49,14 +50,18 @@
       var items = [];          
       $.each(resp, function() {
         $.each(resp.data, function(key, val) {
-          var itemElsGroup =  createItemInput("title", "Title", "form-control", val.attributes.title) + 
-                              createItemInput("url", "URL", "form-control", val.attributes.url) + 
-                              createItemActionBtn("update", "Update Item") + 
-                              createItemActionBtn("delete", "Delete Item");
-           items.push('<li class="list-item col-sm-6" data-id="' + val.id + '"><div class="form-group">' +
+          var itemElsGroup =  '<div class="input-group col-sm-10">' + 
+                                createItemInput("title", "Title", "form-control", val.attributes.title) + 
+                                createItemInput("url", "URL", "form-control", val.attributes.url) + 
+                              '</div>' +
+                              '<div class="button-group col-sm-2">' + 
+                                createItemActionBtn("update", "", "btn-icon", "glyphicon-pencil") + 
+                                createItemActionBtn("delete", "", "btn-icon", "glyphicon-trash") +
+                              '</div>';
+           items.push('<li class="list-item col-sm-6" data-id="' + val.id + '"><div class="form-group row">' +
                          //key + ': ' + JSON.stringify(val) + '<br />' + 
                          itemElsGroup + 
-                       '</div></li><br />');
+                       '</div></li>');
         });
       });
       $("<form>", {"id": "ItemsListForm"}).appendTo("#ItemsListContainer");
@@ -69,8 +74,8 @@
     .fail(function(resp, textStatus, errorThrown) {
       // console.log("resp:", resp);
       // console.log("textStatus:", textStatus);
-      // console.log("errorThrown:", errorThrown);
-      $("#MessageContainer").removeClass().addClass("error").text(textStatus + ": " + errorThrown + " - " + JSON.stringify(resp));
+      // console.log("errorThrown:", errorThrown);      
+      $("#MessageContainer > div").removeClass().addClass("alert alert-danger").text(textStatus + ": " + errorThrown + " - " + JSON.stringify(resp));
     });
   }
 
@@ -95,7 +100,7 @@
       // console.log("textStatus:", textStatus);
       clearAddNewItemInputs();
       clearItemsList();
-      $("#MessageContainer").removeClass().addClass("success").text("Successfully added a new item.");
+      $("#MessageContainer > div").removeClass().addClass("alert alert-success").text("Successfully added a new item.");
       getAllItems();
     })
     .fail(function(resp, textStatus, errorThrown) {
@@ -103,7 +108,7 @@
       // console.log("textStatus:", textStatus);
       // console.log("errorThrown:", errorThrown);
       clearItemsList();
-      $("#MessageContainer").removeClass().addClass("error").text("Sorry, adding a new item failed.");
+      $("#MessageContainer > div").removeClass().addClass("alert alert-danger").text("Sorry, adding a new item failed.");
       getAllItems();
     });
   }
@@ -127,7 +132,7 @@
       // console.log("resp:", resp);
       // console.log("textStatus:", textStatus);
       clearItemsList();
-      $("#MessageContainer").removeClass().addClass("success").text("Successfully updated item ID: " + id);
+      $("#MessageContainer > div").removeClass().addClass("alert alert-success").text("Successfully updated item ID: " + id);
       getAllItems();
     })
     .fail(function(resp, textStatus, errorThrown) {
@@ -135,7 +140,7 @@
       // console.log("textStatus:", textStatus);
       // console.log("errorThrown:", errorThrown);
       clearItemsList();
-      $("#MessageContainer").removeClass().addClass("error").text("Sorry, failed to update item ID: " + id);
+      $("#MessageContainer > div").removeClass().addClass("alert alert-danger").text("Sorry, failed to update item ID: " + id);
       getAllItems();
     });
   }
@@ -150,7 +155,7 @@
       // console.log("resp:", resp);
       // console.log("textStatus:", textStatus);
       clearItemsList();
-      $("#MessageContainer").removeClass().addClass("success").text("Successfully deleted item ID: " + id);
+      $("#MessageContainer > div").removeClass().addClass("alert alert-success").text("Successfully deleted item ID: " + id);
       getAllItems();
     })
     .fail(function(resp, textStatus, errorThrown) {
@@ -158,7 +163,7 @@
       // console.log("textStatus:", textStatus);
       // console.log("errorThrown:", errorThrown);
       clearItemsList();
-      $("#MessageContainer").removeClass().addClass("error").text("Sorry, failed to delete item ID: " + id);
+      $("#MessageContainer > div").removeClass().addClass("alert alert-danger").text("Sorry, failed to delete item ID: " + id);
       getAllItems();
     });
   }
