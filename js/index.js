@@ -7,25 +7,58 @@
     $("#AddNewItemContainer").find("input").val("");
   }
 
-  function createItemInput(name, label, cssClasses, value) {
-    var addCssClasses = cssClasses ? cssClasses : "",
-        valueOrPlaceholder = !value ? 'placeholder="' + label + '"' : 'value="' + value + '"';
-    return '<input type="text" class="item-' + name + ' ' + addCssClasses + '" ' + valueOrPlaceholder + ' />';
+  function createItemInput(name, label, cssClasses, readOnly, value) {
+    var addCssClasses = cssClasses ? cssClasses : ''
+        valueOrPlaceholder = !value ? 'placeholder="' + label + '"' : 'value="' + value + '"',
+        isReadOnly = readOnly ? 'disabled="disabled"' : '';
+    return '<input type="text" class="item-' + name + ' ' + addCssClasses + '" ' + valueOrPlaceholder + ' ' + isReadOnly + ' />';
   }
 
-  function createItemActionBtn(action, label, cssClasses, icon) {
+  function createItemActionBtn(action, label, cssClasses, icon, titleTip) {
     var addCssClasses = cssClasses ? cssClasses : "",
+        showTitleTip = titleTip ? 'title="' + titleTip + '"' : '',
         addIcon = icon ? '<span class="glyphicon ' + icon + '" aria-hidden="true"></span>' : "";
-    return '<button type="button" class="' + action + '-item ' + addCssClasses + '">' + label + addIcon + '</button>';
+    return  '<button type="button" ' + 
+              showTitleTip + 
+              ' class="' + action + '-item ' + 
+              addCssClasses + '">' + label + addIcon + 
+            '</button>';
   }
 
   function renderAddNewItemInputs() {
-    var itemElsGroup = $('<form id="AddNewItemForm" class="form-inline"><div class="form-group">' + 
-                          createItemInput("title", "Name", "form-control form-control-inline") + 
-                          createItemInput("url", "URL", "form-control form-control-inline") + 
-                          createItemActionBtn("add", "Enter", "btn btn-primary btn-lg") + 
-                        '</div></form>');
+    var itemElsGroup = $('<form id="AddNewItemForm" class="form-inline row">' + 
+                            '<div class="form-group col-sm-3">' + 
+                              createItemInput("title", "Name", "form-control") +
+                            '</div>' + 
+                            '<div class="form-group col-sm-7">' + 
+                              createItemInput("url", "URL", "form-control") +
+                            '</div>' + 
+                            createItemActionBtn("add", "Enter", "btn btn-primary btn-lg") + 
+                          '</form>');
     itemElsGroup.appendTo("#AddNewItemContainer");
+  }
+
+  function resetEditStateOnAllOtherItems() {
+    $("#ItemsList .list-item input").attr("disabled", "disabled");
+    $("#ItemsList .list-item button:first-child").removeClass().addClass("edit-item btn-icon");
+    $("#ItemsList .list-item button:first-child").attr("title", "Edit");
+    $("#ItemsList .list-item button:first-child > span").removeClass().addClass("glyphicon glyphicon-pencil");
+  }
+
+  function toggleEditSaveIcon(item) {
+    //console.log(item);
+    $(item).find("button:first-child").removeClass("edit-item").addClass("update-item");
+    $(item).find("button:first-child").attr("title", "Save");
+    $(item).find("button:first-child > span").removeClass("glyphicon-pencil").addClass("glyphicon-floppy-disk");
+  }
+
+  function editItem(item, title, url) {
+    //console.log(item);
+    //console.log(title);
+    //console.log(url);
+    $(title).removeAttr("disabled");
+    $(url).removeAttr("disabled");
+    toggleEditSaveIcon($(item));
   }
 
   $.ajaxSetup({
@@ -50,13 +83,14 @@
       var items = [];          
       $.each(resp, function() {
         $.each(resp.data, function(key, val) {
-          var itemElsGroup =  '<div class="input-group col-sm-10">' + 
-                                createItemInput("title", "Title", "form-control", val.attributes.title) + 
-                                createItemInput("url", "URL", "form-control", val.attributes.url) + 
+          var itemElsGroup =  '<div class="input-group col-sm-9">' + 
+                                createItemInput("title", "Title", "form-control", true, val.attributes.title) + 
+                                createItemInput("url", "URL", "form-control", true, val.attributes.url) + 
                               '</div>' +
-                              '<div class="button-group col-sm-2">' + 
-                                createItemActionBtn("update", "", "btn-icon", "glyphicon-pencil") + 
-                                createItemActionBtn("delete", "", "btn-icon", "glyphicon-trash") +
+                              '<div class="button-group col-sm-3">' + 
+                                createItemActionBtn("edit", "", "btn-icon", "glyphicon-pencil", "Edit") +
+                                createItemActionBtn("delete", "", "btn-icon", "glyphicon-trash", "Delete") +
+                                //createItemActionBtn("update", "", "btn-icon", "glyphicon-pencil") + 
                               '</div>';
            items.push('<li class="list-item col-sm-6" data-id="' + val.id + '"><div class="form-group row">' +
                          //key + ': ' + JSON.stringify(val) + '<br />' + 
@@ -80,7 +114,7 @@
   }
 
   //// POST
-  function postNewItem(title = "Title", url = "URL") {
+  function postNewItem(title, url) {
     var model = {
       data: {
         attributes: {
@@ -108,7 +142,7 @@
       // console.log("textStatus:", textStatus);
       // console.log("errorThrown:", errorThrown);
       clearItemsList();
-      $("#MessageContainer > div").removeClass().addClass("alert alert-danger").text("Sorry, adding a new item failed.");
+      $("#MessageContainer > div").removeClass().addClass("alert alert-danger").text("Sorry, adding a new item failed. The Name and URL fields are both required values.");
       getAllItems();
     });
   }
@@ -174,19 +208,31 @@
 
     $("#AddNewItemContainer").on("click", ".add-item", function(e) {
       e.preventDefault();
-      //console.log($(this));
-      var itemTitle = $(this).siblings(".item-title").val();
-      var itemUrl = $(this).siblings(".item-url").val();
+      var itemTitle = $("#AddNewItemForm .item-title").val();
+      var itemUrl = $("#AddNewItemForm .item-url").val();
       // console.log(itemTitle);
       // console.log(itemUrl);
       postNewItem(itemTitle, itemUrl);
     });
 
+    $("#ItemsListContainer").on("click", ".edit-item", function(e) {
+      e.preventDefault();
+      resetEditStateOnAllOtherItems();
+      var thisItem = $(this).closest(".list-item");
+      var itemId = $(thisItem).data("id");
+      var itemTitle = $(thisItem).find(".item-title");
+      var itemUrl = $(thisItem).find(".item-url");
+      // console.log(itemTitle);
+      // console.log(itemUrl);
+      editItem(thisItem, itemTitle, itemUrl);
+    });
+
     $("#ItemsListContainer").on("click", ".update-item", function(e) {
       e.preventDefault();
-      var itemId = $(this).closest(".list-item").data("id");
-      var itemTitle = $(this).siblings(".item-title").val();
-      var itemUrl = $(this).siblings(".item-url").val();
+      var thisItem = $(this).closest(".list-item");
+      var itemId = $(thisItem).data("id");
+      var itemTitle = $(thisItem).find(".item-title").val();
+      var itemUrl = $(thisItem).find(".item-url").val();
       // console.log(itemTitle);
       // console.log(itemUrl);
       updateItem(itemId, itemTitle, itemUrl);
@@ -197,5 +243,6 @@
       var itemId = $(this).closest(".list-item").data("id");
       deleteItem(itemId);
     });
+
   });  
 })();
