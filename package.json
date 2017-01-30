@@ -8,12 +8,13 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/bericson/property-bookmarker-v1.0.git"
   },
   "author": "Benjamin Ericson",
   "license": "ISC",
   "dependencies": {
     "bootstrap": "^3.3.7",
-    "express": "^4.14.1"
+    "express": "^4.14.1",
+    "jquery": "^3.1.1"
   }
 }
