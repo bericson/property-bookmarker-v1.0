@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script data-require="jquery@3.1.1" data-semver="3.1.1" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>    
+    <script data-require="bootstrap@3.3.7" data-semver="3.3.7" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link data-require="bootstrap@3.3.7" data-semver="3.3.7" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="site.css">
+  </head>
+
+  <body>
+    <h1>Listings <span style="font-size: 0.5em;">Property Bookmarker (basic JSON API CRUD UI)</span></h1>
+    <div id="AddNewItemContainer"></div>
+    <div id="MessageContainer"></div>
+    <div id="ItemsListContainer"></div>
+
+    <script type="text/javascript">
+      function clearItemsList() {
+        $("#ItemsListContainer").empty();
+      }
+
+      function clearAddNewItemInputs() {
+        $("#AddNewItemContainer").find("input").val("");
+      }
+
+      function createItemInput(name, label, value) {
+        var valueOrPlaceholder = !value ? 'placeholder="' + label + '"' : 'value="' + value + '"';
+        return '<input type="text" class="item-' + name + '" ' + valueOrPlaceholder + ' />';        
+      }
+
+      function createItemActionBtn(action, label) {
+        return '<button class="' + action + '-item" type="button">' + label +'</button>';
+      }
+
+      function renderAddNewItemInputs() {
+        var itemElsGroup = $('<form id="AddNewItemForm">' + 
+                              createItemInput("title", "Title") + 
+                              createItemInput("url", "URL") + 
+                              createItemActionBtn("add", "Add New Item") + 
+                            '</form>');
+        itemElsGroup.appendTo("#AddNewItemContainer");
+      }
+
+      $.ajaxSetup({
+        //dataType: 'json',
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader("Authorization", "455fd78df48d4cd7f32a008259ed569d");
+        }
+      });
+
+      //// GET
+      function getAllItems() {
+        $.ajax({
+          type: "GET",
+          url: "https://clientside-api.herokuapp.com/api/v1/listings/",
+        })
+        .done(function(resp, textStatus) {
+          // console.log("resp:", resp);
+          // console.log("textStatus:", textStatus);
+          //console.log("JSON Stringified resp/data:", JSON.stringify(resp));
+          //console.log("Parsed JSON Response:", $.parseJSON(resp));
+          //$("<div>").text(textStatus + ": " + JSON.stringify(resp)).appendTo("#ItemsListContainer");
+          var items = [];          
+          $.each(resp, function() {
+            $.each(resp.data, function(key, val) {
+              var itemElsGroup =  createItemInput("title", "Title", val.attributes.title) + 
+                                  createItemInput("url", "URL", val.attributes.url) + 
+                                  createItemActionBtn("update", "Update Item") + 
+                                  createItemActionBtn("delete", "Delete Item");
+              items.push('<li class="list-item" data-id="' + val.id + '">' +
+                            key + ': ' + JSON.stringify(val) + '<br />' + 
+                            itemElsGroup + 
+                          '</li><br />');
+              //items.push("<li class='list-item'>" + itemElsGroup + "</li>");
+            });
+          });
+          $("<form>", {"id": "ItemsListForm"}).appendTo("#ItemsListContainer");
+          $("<ul>", {
+            "id": "ItemsList",
+            html: items.join("")
+          }).appendTo("#ItemsListForm");
+        })
+        .fail(function(resp, textStatus, errorThrown) {
+          // console.log("resp:", resp);
+          // console.log("textStatus:", textStatus);
+          // console.log("errorThrown:", errorThrown);
+          $("#MessageContainer").removeClass().addClass("error").text(textStatus + ": " + errorThrown + " - " + JSON.stringify(resp));
+        });
+      }
+
+      //// POST
+      function postNewItem(title = "Title", url = "URL") {
+        var model = {
+          data: {
+            attributes: {
+              title: title,
+              url: url
+            }
+          }
+        };
+
+        $.ajax({
+          type: "POST",
+          url: "https://clientside-api.herokuapp.com/api/v1/listings/",
+          data: model
+        })
+        .done(function(resp, textStatus) {
+          // console.log("resp:", resp);
+          // console.log("textStatus:", textStatus);
+          clearAddNewItemInputs();
+          clearItemsList();
+          $("#MessageContainer").removeClass().addClass("success").text("Successfully added a new item.");
+          getAllItems();
+        })
+        .fail(function(resp, textStatus, errorThrown) {
+          // console.log("resp:", resp);
+          // console.log("textStatus:", textStatus);
+          // console.log("errorThrown:", errorThrown);
+          clearItemsList();
+          $("#MessageContainer").removeClass().addClass("error").text("Sorry, adding a new item failed.");
+          getAllItems();
+        });
+      }
+
+      //// PUT
+      function updateItem(id, title, url) {
+        var model = {
+          data: {
+            attributes: {
+              title: title,
+              url: url
+            }
+          }
+        };
+        $.ajax({
+          type: "PUT",
+          url: "https://clientside-api.herokuapp.com/api/v1/listings/" + id,
+          data: model
+        })
+        .done(function(resp, textStatus) {
+          // console.log("resp:", resp);
+          // console.log("textStatus:", textStatus);
+          clearItemsList();
+          $("#MessageContainer").removeClass().addClass("success").text("Successfully updated item ID: " + id);
+          getAllItems();
+        })
+        .fail(function(resp, textStatus, errorThrown) {
+          // console.log("resp:", resp);
+          // console.log("textStatus:", textStatus);
+          // console.log("errorThrown:", errorThrown);
+          clearItemsList();
+          $("#MessageContainer").removeClass().addClass("error").text("Sorry, failed to update item ID: " + id);
+          getAllItems();
+        });
+      }
+
+      //// DELETE
+      function deleteItem(id) {
+        $.ajax({          
+          type: "DELETE",
+          url: "https://clientside-api.herokuapp.com/api/v1/listings/" + id,
+        })
+        .done(function(resp, textStatus) {
+          // console.log("resp:", resp);
+          // console.log("textStatus:", textStatus);
+          clearItemsList();
+          $("#MessageContainer").removeClass().addClass("success").text("Successfully deleted item ID: " + id);
+          getAllItems();
+        })
+        .fail(function(resp, textStatus, errorThrown) {
+          // console.log("resp:", resp);
+          // console.log("textStatus:", textStatus);
+          // console.log("errorThrown:", errorThrown);
+          clearItemsList();
+          $("#MessageContainer").removeClass().addClass("error").text("Sorry, failed to delete item ID: " + id);
+          getAllItems();
+        });
+      }
+
+      $(function() {
+        renderAddNewItemInputs();
+        getAllItems();
+
+        $("#AddNewItemContainer").on("click", ".add-item", function(e) {
+          e.preventDefault();
+          //console.log($(this));
+          var itemTitle = $(this).siblings(".item-title").val();
+          var itemUrl = $(this).siblings(".item-url").val();
+          // console.log(itemTitle);
+          // console.log(itemUrl);
+          postNewItem(itemTitle, itemUrl);
+        });
+
+        $("#ItemsListContainer").on("click", ".update-item", function(e) {
+          e.preventDefault();
+          var itemId = $(this).closest(".list-item").data("id");
+          var itemTitle = $(this).siblings(".item-title").val();
+          var itemUrl = $(this).siblings(".item-url").val();
+          // console.log(itemTitle);
+          // console.log(itemUrl);
+          updateItem(itemId, itemTitle, itemUrl);
+        });
+
+        $("#ItemsListContainer").on("click", ".delete-item", function(e) {
+          e.preventDefault();
+          var itemId = $(this).closest(".list-item").data("id");
+          deleteItem(itemId);
+        });
+      });
+    </script>
+
+  </body>
+</html>

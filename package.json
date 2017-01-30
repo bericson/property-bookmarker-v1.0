@@ -1,0 +1,19 @@
+{
+  "name": "property-bookmarker-v1.0",
+  "version": "1.0.0",
+  "description": "Basic JSON API CRUD UI",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "Benjamin Ericson",
+  "license": "ISC",
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "express": "^4.14.1"
+  }
+}
